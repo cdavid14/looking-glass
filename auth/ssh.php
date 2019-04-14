@@ -26,10 +26,12 @@ require_once('includes/utils.php');
 
 final class SSH extends Authentication {
   private $port;
+  private $m2m;
 
   public function __construct($config, $debug) {
     parent::__construct($config, $debug);
 
+    $this->m2m = isset($this->config['m2m_command']) ? (string) $this->config['m2m_command'] : NULL;
     $this->port = isset($this->config['port']) ? (int) $this->config['port'] : 22;
 
     if ($this->debug) {
@@ -87,6 +89,11 @@ final class SSH extends Authentication {
   public function send_command($command) {
     $this->connect();
 
+    //Machine-To-Machine (M2M) or (No-Pagging)
+    if ($this->m2m !== NULL){
+      $message = $this->connection->exec($this->m2m);
+    }
+    $this->connection->read();
     $data = $this->connection->exec($command);
     if ($this->debug) {
       log_to_file($this->connection->getLog());
